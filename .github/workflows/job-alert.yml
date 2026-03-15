@@ -1,0 +1,47 @@
+name: Job Alert Agent
+
+on:
+  schedule:
+    # Runs every day at 08:00 UTC (09:00 Paris, 04:00 ET)
+    - cron: "0 8 * * *"
+  workflow_dispatch:  # allows manual trigger from GitHub UI
+
+jobs:
+  check-jobs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      # Restore seen_jobs.json from cache so we remember previously seen jobs
+      - name: Restore job state cache
+        uses: actions/cache@v4
+        with:
+          path: data/seen_jobs.json
+          key: seen-jobs-${{ runner.os }}
+          restore-keys: |
+            seen-jobs-
+
+      - name: Run job alert scraper
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+        run: python scraper.py
+
+      # Save updated state back to cache
+      - name: Save job state cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: data/seen_jobs.json
+          key: seen-jobs-${{ runner.os }}-${{ github.run_id }}
