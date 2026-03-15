@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -24,7 +24,7 @@ jobs:
 
       # Restore seen_jobs.json from cache so we remember previously seen jobs
       - name: Restore job state cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: data/seen_jobs.json
           key: seen-jobs-${{ runner.os }}
@@ -40,7 +40,7 @@ jobs:
 
       # Save updated state back to cache
       - name: Save job state cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         if: always()
         with:
           path: data/seen_jobs.json
