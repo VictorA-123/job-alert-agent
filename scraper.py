@@ -83,12 +83,13 @@ COMPANIES = [
         "keywords": ["commercial", "business", "partnerships", "operations", "program"],
     },
     # --- Airport / Industrial / Yard ---
-    {
-        "name": "Outrider",
-        "url": "https://jobs.lever.co/outrider",
-        "parser": "lever",
-        "keywords": ["commercial", "business", "operations", "customer", "partnerships"],
-    },
+  {
+    "name": "Outrider",
+    "url": "https://job-boards.greenhouse.io/outrider",
+    "parser": "greenhouse",
+    "gh_board": "outrider",
+    "keywords": ["commercial", "business", "operations", "customer", "partnerships"],
+},
     {
         "name": "Isee AI",
         "url": "https://www.isee.ai/careers",
@@ -142,6 +143,25 @@ COMPANIES = [
         "parser": "generic",
         "keywords": ["commercial", "business", "operations", "partnerships"],
     },
+{
+    "name": "Pronto",
+    "url": "https://ats.rippling.com/pronto/jobs?jobBoardSlug=pronto&page=0",
+    "parser": "rippling",
+    "rippling_slug": "pronto",
+    "keywords": ["commercial", "business", "partnerships", "operations"],
+},
+{
+    "name": "Glydways",
+    "url": "https://www.glydways.com/careers/",
+    "parser": "generic",
+    "keywords": ["commercial", "business", "operations", "partnerships", "sales"],
+},
+{
+    "name": "Intramotev",
+    "url": "https://intramotev.com/careers/",
+    "parser": "generic",
+    "keywords": [],
+},
 ]
 
 # ---------------------------------------------------------------------------
@@ -276,7 +296,26 @@ def parse_generic(company: dict) -> list[dict]:
         seen.add(job_id)
         jobs.append({"id": job_id, "title": text, "location": "", "url": href})
     return jobs
-
+def parse_rippling(company: dict) -> list[dict]:
+    """Rippling ATS board."""
+    slug = company.get("rippling_slug", "")
+    api = f"https://ats.rippling.com/api/w/{slug}/jobs/public?page=0&pageSize=100"
+    r = fetch(api)
+    if not r:
+        return []
+    try:
+        data = r.json()
+    except Exception:
+        return []
+    jobs = []
+    for post in data.get("results", data if isinstance(data, list) else []):
+        jobs.append({
+            "id": str(post.get("id", post.get("uid", ""))),
+            "title": post.get("title", post.get("name", "")),
+            "location": post.get("location", {}).get("city", "") if isinstance(post.get("location"), dict) else str(post.get("location", "")),
+            "url": f"https://ats.rippling.com/{slug}/jobs/{post.get('id', post.get('uid', ''))}",
+        })
+    return jobs
 
 PARSERS = {
     "lever": parse_lever,
@@ -284,6 +323,7 @@ PARSERS = {
     "waymo": parse_waymo,
     "mobileye": parse_mobileye,
     "generic": parse_generic,
+"rippling": parse_rippling,
 }
 
 # ---------------------------------------------------------------------------
