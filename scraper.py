@@ -45,30 +45,31 @@ COMPANIES = [
         "gh_board": "aurora-innovation",
         "keywords": ["commercial", "business development", "partnerships", "operations", "strategy"],
     },
-    {
-        "name": "Kodiak Robotics",
-        "url": "https://jobs.lever.co/kodiak",
-        "parser": "lever",
-        "keywords": ["commercial", "business", "partnerships", "operations"],
-    },
-    {
-        "name": "Torc Robotics",
-        "url": "https://jobs.lever.co/torc",
-        "parser": "lever",
-        "keywords": ["commercial", "business", "strategy", "operations", "partnerships"],
-    },
+  {
+    "name": "Kodiak Robotics",
+    "url": "https://kodiak.ai/careers",
+    "parser": "generic",
+    "keywords": ["commercial", "business", "partnerships", "operations"],
+},
+{
+    "name": "Torc Robotics",
+    "url": "https://job-boards.greenhouse.io/torcrobotics",
+    "parser": "greenhouse",
+    "gh_board": "torcrobotics",
+    "keywords": ["commercial", "business", "strategy", "operations", "partnerships"],
+},
     {
         "name": "Waabi",
         "url": "https://jobs.lever.co/waabi",
         "parser": "lever",
         "keywords": ["commercial", "business", "partnerships", "operations"],
     },
-    {
-        "name": "Gatik",
-        "url": "https://jobs.lever.co/gatik",
-        "parser": "lever",
-        "keywords": ["commercial", "business", "growth", "operations"],
-    },
+{
+    "name": "Gatik",
+    "url": "https://gatik.ai/careers/",
+    "parser": "generic",
+    "keywords": ["commercial", "business", "growth", "operations"],
+},
     {
         "name": "Einride",
         "url": "https://www.einride.tech/careers",
@@ -76,12 +77,12 @@ COMPANIES = [
         "gh_board": "einride",
         "keywords": ["commercial", "business development", "partnerships", "sales", "operations"],
     },
-    {
-        "name": "Plus AI",
-        "url": "https://jobs.lever.co/plus-ai",
-        "parser": "lever",
-        "keywords": ["commercial", "business", "partnerships", "operations", "program"],
-    },
+{
+    "name": "Plus AI",
+    "url": "https://plus.ai/careers",
+    "parser": "generic",
+    "keywords": ["commercial", "business", "partnerships", "operations", "program"],
+},
     # --- Airport / Industrial / Yard ---
   {
     "name": "Outrider",
@@ -90,19 +91,12 @@ COMPANIES = [
     "gh_board": "outrider",
     "keywords": ["commercial", "business", "operations", "customer", "partnerships"],
 },
-    {
-        "name": "Isee AI",
-        "url": "https://www.isee.ai/careers",
-        "parser": "greenhouse",
-        "gh_board": "isee",
-        "keywords": [],
-    },
-    {
-        "name": "Fernride",
-        "url": "https://jobs.lever.co/fernride",
-        "parser": "lever",
-        "keywords": [],
-    },
+{
+    "name": "Isee AI",
+    "url": "https://www.isee.ai/careers#positions",
+    "parser": "generic",
+    "keywords": [],
+},
     # --- Urban / Robotaxi ---
     {
         "name": "Waymo",
@@ -117,19 +111,14 @@ COMPANIES = [
         "gh_board": "motional",
         "keywords": ["commercial", "business", "partnerships", "operations"],
     },
-    {
-        "name": "May Mobility",
-        "url": "https://jobs.lever.co/maymobility",
-        "parser": "lever",
-        "keywords": ["commercial", "business", "operations", "partnerships"],
-    },
+{
+    "name": "May Mobility",
+    "url": "https://job-boards.greenhouse.io/maymobility",
+    "parser": "greenhouse",
+    "gh_board": "maymobility",
+    "keywords": ["commercial", "business", "operations", "partnerships"],
+},
     # --- Platform / Software ---
-    {
-        "name": "Oxa",
-        "url": "https://jobs.lever.co/oxa",
-        "parser": "lever",
-        "keywords": ["commercial", "business", "partnerships", "sales"],
-    },
     {
         "name": "Mobileye",
         "url": "https://mobileye.com/careers/",
@@ -161,6 +150,12 @@ COMPANIES = [
     "url": "https://intramotev.com/careers/",
     "parser": "generic",
     "keywords": [],
+},
+{
+    "name": "Zoox",
+    "url": "https://jobs.lever.co/zoox",
+    "parser": "lever",
+    "keywords": ["commercial", "business", "partnerships", "operations", "strategy"],
 },
 ]
 
