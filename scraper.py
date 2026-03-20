@@ -332,37 +332,39 @@ PARSERS = {
 def clean_description(text: str) -> str:
     if not text:
         return ""
-    # Remove HTML tags if any slipped through
+    # Always strip HTML regardless of source
     soup = BeautifulSoup(text, "html.parser")
     text = soup.get_text(separator="\n")
-    # Remove lines that are pure noise
     noise = [
         "powered by", "greenhouse", "lever.co", "apply now", "apply for this job",
         "equal opportunity", "eeo", "we are an equal", "disability", "veteran",
         "accommodation", "click here", "learn more", "view all jobs",
-        "about us", "who we are", "our mission", "join our team",
-        "we offer", "benefits include", "compensation range",
+        "who we are", "our mission", "about the company", "join our team",
+        "compensation reflects", "pay is based", "total compensation",
+        "sign-on", "relocation", "benefits", "bonus points",
+        "job id:", "hiring range", "pay range", "usd", "salary",
+        "we celebrate", "do not discriminate", "diverse and inclusive",
+        "even if you", "don't meet 100",
+        "data-contrast", "data-ccp", "ccp-props",
     ]
     lines = []
     for line in text.splitlines():
         line = line.strip()
-        if not line:
-            continue
-        if len(line) < 8:
+        if not line or len(line) < 8:
             continue
         if any(n in line.lower() for n in noise):
             continue
         lines.append(line)
-    # Deduplicate consecutive identical lines
+    # Deduplicate
     deduped = []
     for line in lines:
         if not deduped or line != deduped[-1]:
             deduped.append(line)
-    # Cap at 80 words to keep it readable
+    # Cap at 100 words
     full = "\n".join(deduped)
     words = full.split()
-    if len(words) > 80:
-        full = " ".join(words[:80]) + "…"
+    if len(words) > 100:
+        full = " ".join(words[:100]) + "…"
     return full
 def matches_keywords(job: dict, keywords: list[str]) -> bool:
     if not keywords:
