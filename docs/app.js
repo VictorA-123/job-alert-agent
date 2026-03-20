@@ -388,10 +388,6 @@ function closeDiff() {
 
 function downloadDocx() {
  if (!currentDiffJob || !resumeData) return;
-  if (!window.docxReady) {
-    alert('Document library still loading — wait a second and try again.');
-    return;
-  }
 
   const accepted = currentDiffChanges.filter(c => c.accepted);
   const job      = currentDiffJob;
