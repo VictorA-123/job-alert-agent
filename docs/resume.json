@@ -1,0 +1,76 @@
+{
+  "name": "VICTOR ACHARD",
+  "contact": {
+    "us_phone": "+1 314-472-5274",
+    "fr_phone": "+33 6 58 29 40 29",
+    "email": "victor@achard.us",
+    "linkedin": "https://www.linkedin.com/in/victor-achard-65b112195/"
+  },
+  "summary": "Customer-facing commercial professional with experience supporting autonomous vehicle deployments in industrial and airport environments. Background at the intersection of sales, operations, and technology adoption in emerging markets.",
+  "experience": [
+    {
+      "company": "Stanley Robotics",
+      "location": "Paris, France",
+      "title": "Business Development Representative",
+      "dates": "November 2024 - Present",
+      "bullets": [
+        "Serve as the primary customer interface across the full sales cycle for autonomous vehicle solution in industrial and airport environments, from initial discovery through contract negotiation and post-signature engagement.",
+        "Co-lead U.S. market entry efforts as part of a two-person sales team, establishing early customer relationships and educating stakeholders on integrating autonomous technology into existing industrial operations.",
+        "Act as Account Manager for a major international airport (40 million+ passengers per annum), owning commercial negotiations, contract drafting, and coordination across presales, technical, and operational workstreams.",
+        "Lead customer-specific business case development, creating financial and operational models to quantify cost savings, productivity gains, and deployment feasibility for OEMs, logistics yards, ports, airports, and rail facilities.",
+        "Partner closely with operations and engineering teams on site visits, customer workshops, and early project scoping, introducing technical teams to clients and supporting feasibility assessments across multiple countries.",
+        "Enable customer engagement and deal progression through targeted marketing initiatives, including executive showcases, development of sales collateral, and end-to-end organization of customer-facing events."
+      ]
+    },
+    {
+      "company": "EasyMile",
+      "location": "Toulouse, France",
+      "title": "Marketing Insights Coordinator",
+      "dates": "May 2023 - December 2023",
+      "bullets": [
+        "Conducted market research across public and private transportation sectors to understand the opportunities and role of autonomous vehicle technologies today and how transportation could benefit from these technologies.",
+        "Analyzed competitors' go-to-market approaches and messaging across different use cases, identifying positioning gaps and opportunities for EasyMile.",
+        "Conducted market research across public and private transportation sectors to understand where autonomous vehicle technologies presented meaningful opportunities."
+      ]
+    },
+    {
+      "company": "BioMerieux",
+      "location": "St. Louis, MO",
+      "title": "Global Product Marketing",
+      "dates": "June 2022 - August 2022",
+      "bullets": [
+        "Supported global product marketing activities for a product line within a healthcare environment, contributing to the go-to-market transition for this new product generation.",
+        "Analyzed sales performance and market data for the product to support launch planning and commercial decision-making.",
+        "Structured and reviewed large volumes of customer feedback and complaints to identify recurring issues and inform improvements across labs and hospital customers."
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "category": "Sales & Customer",
+      "items": "Full-cycle sales support · Account management · Cross-functional coordination · CRM & opportunity tracking"
+    },
+    {
+      "category": "Technical & Analytical Skills",
+      "items": "Market & competitive analysis · Product positioning · Data analysis (Excel, SAS) · Data Visualization"
+    },
+    {
+      "category": "Languages",
+      "items": "English (native) · French (native) · Spanish (intermediate)"
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Science – Honors Marketing and Statistics",
+      "school": "Florida State University",
+      "location": "Tallahassee, FL",
+      "dates": "August 2020 - May 2024",
+      "bullets": [
+        "3.82 GPA (Dean's List: Fall 2020 - May 2024)",
+        "James M. Seneff Honors Program",
+        "SAS Undergraduate Certification (Statistical Analysis Software)",
+        "FSU International Programs – Valencia, Spain (Spring 2023)"
+      ]
+    }
+  ]
+}

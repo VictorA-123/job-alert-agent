@@ -1,17 +1,19 @@
 // ============================================================
-// Job Dashboard — app.js
+// Job Dashboard — app.js v2
 // ============================================================
 
-const JOBS_URL = 'jobs.json';
-const STATE_KEY = 'job_triage_v1';
+const JOBS_URL   = 'jobs.json';
+const RESUME_URL = 'resume.json';
+const STATE_KEY  = 'job_triage_v1';
 const API_KEY_STORAGE = 'anthropic_api_key';
 
-let allJobs = [];
-let triageState = {};   // { [jobId]: { status: 'new'|'accepted'|'rejected', appStatus: 'saved'|'applied'|'interviewing' } }
-let currentTab = 'queue';
-let currentDiffJob = null;
+let allJobs    = [];
+let resumeData = null;
+let triageState = {};
+let currentTab  = 'queue';
+let currentDiffJob     = null;
 let currentDiffChanges = [];
-let currentDiffType = 'resume'; // 'resume' or 'cover'
+let currentDiffType    = 'resume';
 
 // ============================================================
 // INIT
@@ -19,17 +21,14 @@ let currentDiffType = 'resume'; // 'resume' or 'cover'
 
 async function init() {
   triageState = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
-  await loadJobs();
-  checkApiKey();
+  await Promise.all([loadJobs(), loadResume()]);
 }
 
 async function loadJobs() {
   try {
-    const res = await fetch(JOBS_URL + '?t=' + Date.now());
+    const res  = await fetch(JOBS_URL + '?t=' + Date.now());
     const data = await res.json();
     allJobs = data.jobs || [];
-
-    // Format last updated
     if (data.last_updated) {
       const d = new Date(data.last_updated);
       document.getElementById('last-updated').textContent =
@@ -43,13 +42,19 @@ async function loadJobs() {
   render();
 }
 
+async function loadResume() {
+  try {
+    const res = await fetch(RESUME_URL + '?t=' + Date.now());
+    resumeData = await res.json();
+  } catch (e) {
+    console.error('Failed to load resume.json', e);
+    resumeData = null;
+  }
+}
+
 // ============================================================
 // API KEY
 // ============================================================
-
-function checkApiKey() {
-  // Don't auto-show setup — only show when user clicks or tries to generate
-}
 
 function showSetup() {
   const key = localStorage.getItem(API_KEY_STORAGE) || '';
@@ -59,8 +64,8 @@ function showSetup() {
 
 function saveApiKey() {
   const val = document.getElementById('api-key-input').value.trim();
-  if (!val.startsWith('sk-ant-') && val !== '') {
-    alert('That doesn\'t look like an Anthropic API key. It should start with sk-ant-');
+  if (val && !val.startsWith('sk-ant-')) {
+    alert("That doesn't look like an Anthropic API key. It should start with sk-ant-");
     return;
   }
   localStorage.setItem(API_KEY_STORAGE, val);
@@ -68,7 +73,7 @@ function saveApiKey() {
 }
 
 // ============================================================
-// TRIAGE ACTIONS
+// TRIAGE
 // ============================================================
 
 function acceptJob(jobId) {
@@ -93,7 +98,6 @@ function setAppStatus(jobId, status) {
   if (triageState[jobId]) {
     triageState[jobId].appStatus = status;
     saveState();
-    render();
   }
 }
 
@@ -135,37 +139,30 @@ function render() {
 
 function renderList(containerId, jobs, type) {
   const el = document.getElementById(containerId);
-  if (jobs.length === 0) {
-    el.innerHTML = emptyState(type);
-    return;
-  }
+  if (jobs.length === 0) { el.innerHTML = emptyState(type); return; }
   el.innerHTML = jobs.map(job => jobCard(job, type)).join('');
 }
 
 function emptyState(type) {
   const msgs = {
-    queue:    { icon: '✦', title: 'All caught up', sub: 'New jobs will appear here each morning.' },
-    accepted: { icon: '◎', title: 'Nothing accepted yet', sub: 'Accept jobs from the queue to generate tailored documents.' },
-    archive:  { icon: '○', title: 'Archive is empty', sub: 'Rejected jobs will appear here.' },
+    queue:    { icon: '✦', title: 'All caught up',          sub: 'New jobs appear here each morning.' },
+    accepted: { icon: '◎', title: 'Nothing accepted yet',   sub: 'Accept jobs from the queue to generate tailored documents.' },
+    archive:  { icon: '○', title: 'Archive is empty',       sub: 'Rejected jobs will appear here.' },
   };
   const m = msgs[type];
-  return `<div class="empty">
-    <div class="empty-icon">${m.icon}</div>
-    <h3>${m.title}</h3>
-    <p>${m.sub}</p>
-  </div>`;
+  return `<div class="empty"><div class="empty-icon">${m.icon}</div><h3>${m.title}</h3><p>${m.sub}</p></div>`;
 }
 
 function jobCard(job, type) {
-  const hasDesc = job.description && job.description.trim().length > 20;
+  const hasDesc   = job.description && job.description.trim().length > 20;
   const appStatus = triageState[job.id]?.appStatus || 'saved';
 
-  const appStatusOptions = type === 'accepted' ? `
+  const appStatusSelect = type === 'accepted' ? `
     <select onchange="setAppStatus('${job.id}', this.value)"
       style="font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--border);
              border-radius:6px;background:var(--bg);color:var(--text);cursor:pointer;margin-left:auto;">
-      <option value="saved" ${appStatus==='saved'?'selected':''}>Saved</option>
-      <option value="applied" ${appStatus==='applied'?'selected':''}>Applied</option>
+      <option value="saved"        ${appStatus==='saved'?'selected':''}>Saved</option>
+      <option value="applied"      ${appStatus==='applied'?'selected':''}>Applied</option>
       <option value="interviewing" ${appStatus==='interviewing'?'selected':''}>Interviewing</option>
     </select>` : '';
 
@@ -174,11 +171,11 @@ function jobCard(job, type) {
       <button class="btn btn-accept" onclick="acceptJob('${job.id}')">✓ Interested</button>
       <button class="btn btn-reject" onclick="rejectJob('${job.id}')">✕ Pass</button>`,
     accepted: `
-      <button class="btn btn-generate" onclick="generateDocs('${job.id}', 'resume')">Generate resume</button>
+      <button class="btn btn-generate" onclick="generateDocs('${job.id}','resume')">Generate resume</button>
       <button class="btn btn-generate" style="background:var(--bg);color:var(--text);border-color:var(--border);"
-        onclick="generateDocs('${job.id}', 'cover')">Cover letter</button>
+        onclick="generateDocs('${job.id}','cover')">Cover letter</button>
       <button class="btn btn-undo" onclick="undoJob('${job.id}')">Undo</button>
-      ${appStatusOptions}`,
+      ${appStatusSelect}`,
     archive: `
       <button class="btn btn-undo" onclick="undoJob('${job.id}')">↩ Restore</button>`,
   };
@@ -186,22 +183,21 @@ function jobCard(job, type) {
   return `<div class="job-card" id="card-${job.id}">
     <div class="job-card-top">
       <div>
-        <div class="job-company">${escHtml(job.company)}</div>
-        <div class="job-title"><a href="${escHtml(job.url)}" target="_blank">${escHtml(job.title)}</a></div>
+        <div class="job-company">${esc(job.company)}</div>
+        <div class="job-title"><a href="${esc(job.url)}" target="_blank">${esc(job.title)}</a></div>
       </div>
     </div>
     <div class="job-meta">
-      ${job.location ? `<span class="meta-tag">${escHtml(job.location)}</span>` : ''}
-      ${job.salary   ? `<span class="meta-tag">${escHtml(job.salary)}</span>` : ''}
-      <span class="meta-tag new">${escHtml(job.date_found || 'Today')}</span>
+      ${job.location ? `<span class="meta-tag">${esc(job.location)}</span>` : ''}
+      ${job.salary   ? `<span class="meta-tag">${esc(job.salary)}</span>`   : ''}
+      <span class="meta-tag new">${esc(job.date_found || 'Today')}</span>
     </div>
-    ${hasDesc ? `<button class="desc-toggle" onclick="toggleDesc('${job.id}')">
+    ${hasDesc ? `
+    <button class="desc-toggle" onclick="toggleDesc('${job.id}')">
       <span id="toggle-arrow-${job.id}">▸</span> View description
     </button>
-    <div class="desc-body" id="desc-${job.id}">${escHtml(job.description)}</div>` : ''}
-    <div class="job-actions" id="actions-${job.id}">
-      ${actions[type]}
-    </div>
+    <div class="desc-body" id="desc-${job.id}">${esc(job.description)}</div>` : ''}
+    <div class="job-actions" id="actions-${job.id}">${actions[type]}</div>
     <div class="generating-msg" id="gen-${job.id}">
       <div class="spinner"></div> Generating with Claude…
     </div>
@@ -209,42 +205,34 @@ function jobCard(job, type) {
 }
 
 function toggleDesc(jobId) {
-  const el = document.getElementById('desc-' + jobId);
+  const el    = document.getElementById('desc-' + jobId);
   const arrow = document.getElementById('toggle-arrow-' + jobId);
-  const open = el.classList.toggle('open');
-  arrow.textContent = open ? '▾' : '▸';
+  arrow.textContent = el.classList.toggle('open') ? '▾' : '▸';
 }
 
-function escHtml(str) {
+function esc(str) {
   if (!str) return '';
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ============================================================
-// RESUME / COVER LETTER GENERATION
+// AI GENERATION
 // ============================================================
 
 async function generateDocs(jobId, type) {
   const apiKey = localStorage.getItem(API_KEY_STORAGE);
-  if (!apiKey) {
-    showSetup();
-    return;
-  }
+  if (!apiKey) { showSetup(); return; }
+  if (!resumeData) { alert('Resume data not loaded yet — try again in a moment.'); return; }
 
   const job = allJobs.find(j => j.id === jobId);
   if (!job) return;
 
-  // Show spinner
   document.getElementById('actions-' + jobId).style.display = 'none';
   document.getElementById('gen-' + jobId).classList.add('open');
 
-  const prompt = type === 'resume'
-    ? buildResumePrompt(job)
-    : buildCoverPrompt(job);
+  const prompt = type === 'resume' ? buildResumePrompt(job) : buildCoverPrompt(job);
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -262,18 +250,17 @@ async function generateDocs(jobId, type) {
       }),
     });
 
-    const data = await res.json();
-    const text = data.content?.map(b => b.text || '').join('') || '';
+    const data  = await res.json();
+    const text  = data.content?.map(b => b.text || '').join('') || '';
     const clean = text.replace(/```json|```/g, '').trim();
     const changes = JSON.parse(clean);
 
-    currentDiffJob = job;
+    currentDiffJob     = job;
     currentDiffChanges = changes.map(c => ({ ...c, accepted: true }));
-    currentDiffType = type;
-
+    currentDiffType    = type;
     showDiff(job, type);
   } catch (e) {
-    alert('Generation failed: ' + e.message + '\n\nMake sure your API key is correct and you have credits.');
+    alert('Generation failed: ' + e.message + '\n\nCheck your API key and credits.');
     console.error(e);
   } finally {
     document.getElementById('actions-' + jobId).style.display = 'flex';
@@ -284,75 +271,43 @@ async function generateDocs(jobId, type) {
 function buildResumePrompt(job) {
   return `You are a professional resume editor helping tailor a resume for a specific job.
 
-CANDIDATE RESUME:
-Victor Achard
-victor@achard.us | +1 314-472-5274 | linkedin.com/in/victor-achard-65b112195
-
-SUMMARY:
-Customer-facing commercial professional with experience supporting autonomous vehicle deployments in industrial and airport environments. Background at the intersection of sales, operations, and technology adoption in emerging markets.
-
-EXPERIENCE:
-Stanley Robotics, Paris — Business Development Representative (Nov 2024 - Present)
-- Serve as primary customer interface across full sales cycle for autonomous vehicle solutions in industrial and airport environments
-- Co-lead U.S. market entry efforts as part of a two-person sales team
-- Act as Account Manager for a major international airport (40M+ passengers), owning commercial negotiations and contract drafting
-- Lead customer-specific business case development with financial and operational models
-- Partner with operations and engineering on site visits, workshops, and feasibility assessments
-
-EasyMile, Toulouse — Marketing Insights Coordinator (May 2023 - Dec 2023)
-- Conducted market research across public and private transportation sectors
-- Analyzed competitors' go-to-market approaches across different use cases
-
-BioMerieux, St. Louis — Global Product Marketing Intern (Jun 2022 - Aug 2022)
-- Supported go-to-market transition for a new product generation
-- Analyzed sales performance and market data to support launch planning
-
-EDUCATION:
-Florida State University — BS Marketing & Statistics (2020-2024), GPA 3.82
-James M. Seneff Honors Program, SAS Certification, Study abroad Valencia Spain
-
-SKILLS:
-Full-cycle sales, account management, CRM, market analysis, product positioning, Excel, SAS, English (native), French (native), Spanish (intermediate)
-
----
+CANDIDATE RESUME (JSON):
+${JSON.stringify(resumeData, null, 2)}
 
 JOB POSTING:
 Company: ${job.company}
 Title: ${job.title}
-Location: ${job.location}
+Location: ${job.location || 'Not specified'}
 Description: ${job.description || 'Not available'}
-
----
 
 INSTRUCTIONS:
 Suggest specific edits to tailor Victor's resume for this role. Focus on:
-1. Reordering or emphasizing relevant bullet points
-2. Adjusting the summary to mirror language from the job description
+1. Adjusting the summary to mirror language from the job description
+2. Reordering or rewording bullet points to emphasize most relevant experience
 3. Surfacing the most relevant skills
 
-Return ONLY a JSON array with no preamble or markdown fences. Each item:
+Return ONLY a JSON array — no preamble, no markdown fences. Each item must be:
 {
-  "section": "summary" | "experience" | "skills",
+  "type": "summary" | "bullet" | "skills",
+  "experience_company": "Stanley Robotics" (only for bullet type — which job the bullet belongs to),
   "original": "exact original text to change",
   "suggested": "improved version",
-  "reason": "brief reason (one sentence)"
+  "reason": "one sentence explanation"
 }
 
-Only suggest changes grounded in Victor's real experience. Max 5 suggestions.`;
+Max 5 suggestions. Only suggest changes grounded in Victor's real experience. Never invent experience.`;
 }
 
 function buildCoverPrompt(job) {
-  return `You are a professional cover letter writer helping tailor a cover letter for a specific job application.
+  const r = resumeData;
+  return `You are a professional cover letter writer.
 
 CANDIDATE:
-Victor Achard — Business Development professional in autonomous vehicles
-Currently: BDR at Stanley Robotics (autonomous parking robots, airport/industrial deployments, Paris)
-Previously: Marketing at EasyMile (autonomous shuttles), BioMerieux
-Education: Florida State University, BS Marketing & Statistics, 3.82 GPA
-Planning: Moving back to the US this summer
-Languages: English (native), French (native), Spanish (intermediate)
+Name: ${r.name}
+Current role: ${r.experience[0].title} at ${r.experience[0].company} (${r.experience[0].dates})
+Summary: ${r.summary}
 
-BASE COVER LETTER TEMPLATE:
+BASE COVER LETTER:
 Dear Hiring Team,
 
 I am writing to express my interest in the [ROLE] position at [COMPANY]. As a customer-facing commercial professional with hands-on experience supporting autonomous vehicle deployments in airport and industrial environments, I believe I can bring immediate value to your team.
@@ -366,28 +321,24 @@ I would welcome the opportunity to discuss how my background aligns with your ne
 Best regards,
 Victor Achard
 
----
-
 JOB POSTING:
 Company: ${job.company}
 Title: ${job.title}
-Location: ${job.location}
+Location: ${job.location || 'Not specified'}
 Description: ${job.description || 'Not available'}
 
----
-
 INSTRUCTIONS:
-Suggest specific edits to tailor the cover letter for this role.
+Suggest specific edits to tailor this cover letter for the role.
 
-Return ONLY a JSON array with no preamble or markdown fences. Each item:
+Return ONLY a JSON array — no preamble, no markdown fences. Each item:
 {
-  "section": "opening" | "body" | "closing",
+  "type": "cover",
   "original": "exact original text to change",
   "suggested": "improved version",
-  "reason": "brief reason (one sentence)"
+  "reason": "one sentence explanation"
 }
 
-Max 4 suggestions. Keep changes honest and grounded in Victor's real experience.`;
+Max 4 suggestions. Replace [ROLE], [COMPANY], and [REASON] placeholders with appropriate content. Keep changes honest.`;
 }
 
 // ============================================================
@@ -398,19 +349,16 @@ function showDiff(job, type) {
   document.getElementById('diff-subtitle').textContent =
     `${type === 'resume' ? 'Resume' : 'Cover letter'} tailored for ${job.title} at ${job.company}`;
 
-  const container = document.getElementById('diff-items');
-  container.innerHTML = currentDiffChanges.map((change, i) => `
+  document.getElementById('diff-items').innerHTML = currentDiffChanges.map((c, i) => `
     <div class="diff-item" id="diff-item-${i}">
       <div class="diff-item-header">
-        <span>${change.section}</span>
-        <span style="font-size:11px;color:${change.accepted ? 'var(--green)' : 'var(--muted)'}">
-          ${change.accepted ? '✓ accepted' : '✕ rejected'}
-        </span>
+        <span>${c.type}${c.experience_company ? ' — ' + c.experience_company : ''}</span>
+        <span id="diff-status-${i}" style="font-size:11px;color:var(--green)">✓ accepted</span>
       </div>
       <div class="diff-item-body">
-        <div class="diff-original">${escHtml(change.original)}</div>
-        <div class="diff-suggested">${escHtml(change.suggested)}</div>
-        <div class="diff-reason">${escHtml(change.reason)}</div>
+        <div class="diff-original">${esc(c.original)}</div>
+        <div class="diff-suggested">${esc(c.suggested)}</div>
+        <div class="diff-reason">${esc(c.reason)}</div>
         <div class="diff-item-actions">
           <button class="btn btn-accept" onclick="toggleDiffItem(${i}, true)">✓ Accept</button>
           <button class="btn btn-reject" onclick="toggleDiffItem(${i}, false)">✕ Reject</button>
@@ -421,11 +369,11 @@ function showDiff(job, type) {
   document.getElementById('diff-modal').classList.add('open');
 }
 
-function toggleDiffItem(index, accept) {
-  currentDiffChanges[index].accepted = accept;
-  const header = document.querySelector(`#diff-item-${index} .diff-item-header span:last-child`);
-  header.style.color = accept ? 'var(--green)' : 'var(--muted)';
-  header.textContent = accept ? '✓ accepted' : '✕ rejected';
+function toggleDiffItem(i, accept) {
+  currentDiffChanges[i].accepted = accept;
+  const el = document.getElementById('diff-status-' + i);
+  el.style.color = accept ? 'var(--green)' : 'var(--muted)';
+  el.textContent = accept ? '✓ accepted'   : '✕ rejected';
 }
 
 function closeDiff() {
@@ -435,87 +383,46 @@ function closeDiff() {
 }
 
 // ============================================================
-// DOCX DOWNLOAD  (using docx.js from CDN)
+// DOCX DOWNLOAD
 // ============================================================
 
 function downloadDocx() {
-  if (!currentDiffJob) return;
+  if (!currentDiffJob || !resumeData) return;
 
   const accepted = currentDiffChanges.filter(c => c.accepted);
-  const job = currentDiffJob;
-  const type = currentDiffType;
+  const job      = currentDiffJob;
+  const type     = currentDiffType;
 
-  // Build final text by applying accepted changes to base content
-  let finalText = type === 'resume'
-    ? buildFinalResume(accepted)
-    : buildFinalCover(accepted, job);
-
-  const filename = `Victor_Achard_${job.company.replace(/\s+/g, '_')}_${type === 'resume' ? 'Resume' : 'CoverLetter'}.docx`;
-
-  // Use docx library if loaded, otherwise plain text download
-  if (typeof docx !== 'undefined') {
-    buildDocx(finalText, filename, type, job);
+  if (type === 'resume') {
+    buildResumeDocx(applyResumeChanges(accepted), job);
   } else {
-    // Fallback: download as .txt
-    const blob = new Blob([finalText], { type: 'text/plain' });
-    triggerDownload(blob, filename.replace('.docx', '.txt'));
+    buildCoverDocx(applyCoverChanges(accepted, job), job);
   }
-
   closeDiff();
 }
 
-function buildFinalResume(acceptedChanges) {
-  let summary = "Customer-facing commercial professional with experience supporting autonomous vehicle deployments in industrial and airport environments. Background at the intersection of sales, operations, and technology adoption in emerging markets.";
-  let experienceBullets = [
-    "Serve as primary customer interface across full sales cycle for autonomous vehicle solutions in industrial and airport environments",
-    "Co-lead U.S. market entry efforts as part of a two-person sales team",
-    "Act as Account Manager for a major international airport (40M+ passengers), owning commercial negotiations and contract drafting",
-    "Lead customer-specific business case development with financial and operational models",
-    "Partner with operations and engineering on site visits, workshops, and feasibility assessments",
-  ];
-
-  acceptedChanges.forEach(change => {
-    if (change.section === 'summary') {
-      summary = change.suggested;
-    } else if (change.section === 'experience') {
-      experienceBullets = experienceBullets.map(b =>
-        b.includes(change.original.substring(0, 30)) ? change.suggested : b
+function applyResumeChanges(accepted) {
+  const r = JSON.parse(JSON.stringify(resumeData));
+  accepted.forEach(change => {
+    if (change.type === 'summary') {
+      r.summary = change.suggested;
+    } else if (change.type === 'bullet' && change.experience_company) {
+      const exp = r.experience.find(e => e.company === change.experience_company);
+      if (exp) {
+        exp.bullets = exp.bullets.map(b =>
+          b.trim() === change.original.trim() ? change.suggested : b
+        );
+      }
+    } else if (change.type === 'skills') {
+      r.skills = r.skills.map(s =>
+        s.items.includes(change.original) ? { ...s, items: change.suggested } : s
       );
     }
   });
-
-  return `VICTOR ACHARD
-victor@achard.us | +1 314-472-5274 | linkedin.com/in/victor-achard-65b112195
-
-SUMMARY
-${summary}
-
-EXPERIENCE
-
-Stanley Robotics, Paris — Business Development Representative
-November 2024 - Present
-${experienceBullets.map(b => '• ' + b).join('\n')}
-
-EasyMile, Toulouse — Marketing Insights Coordinator
-May 2023 - December 2023
-• Conducted market research across public and private transportation sectors
-• Analyzed competitors' go-to-market approaches across different use cases
-
-BioMerieux, St. Louis — Global Product Marketing Intern
-June 2022 - August 2022
-• Supported go-to-market transition for a new product generation
-• Analyzed sales performance and market data to support launch planning
-
-EDUCATION
-Florida State University — BS Marketing & Statistics (2020-2024)
-GPA: 3.82 | James M. Seneff Honors Program | SAS Certification
-
-SKILLS
-Full-cycle sales · Account management · CRM · Market analysis · Product positioning · Excel · SAS
-English (native) · French (native) · Spanish (intermediate)`;
+  return r;
 }
 
-function buildFinalCover(acceptedChanges, job) {
+function applyCoverChanges(accepted, job) {
   let text = `Dear Hiring Team,
 
 I am writing to express my interest in the ${job.title} position at ${job.company}. As a customer-facing commercial professional with hands-on experience supporting autonomous vehicle deployments in airport and industrial environments, I believe I can bring immediate value to your team.
@@ -529,70 +436,170 @@ I would welcome the opportunity to discuss how my background aligns with your ne
 Best regards,
 Victor Achard`;
 
-  acceptedChanges.forEach(change => {
-    if (change.original && change.suggested) {
-      text = text.replace(change.original, change.suggested);
-    }
+  accepted.forEach(c => {
+    if (c.original && c.suggested) text = text.replace(c.original, c.suggested);
   });
-
   return text;
 }
 
-function buildDocx(text, filename, type, job) {
-  const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = docx;
+function buildResumeDocx(r, job) {
+  const {
+    Document, Packer, Paragraph, TextRun, AlignmentType,
+    LevelFormat, TabStopType, TabStopPosition, BorderStyle,
+  } = docx;
 
-  const lines = text.split('\n');
-  const children = lines.map((line, i) => {
-    if (i === 0) {
-      return new Paragraph({
-        children: [new TextRun({ text: line, bold: true, size: 28 })],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 100 },
-      });
-    }
-    if (line.startsWith('•')) {
-      return new Paragraph({
-        children: [new TextRun({ text: line, size: 22 })],
-        bullet: { level: 0 },
-        spacing: { after: 60 },
-      });
-    }
-    if (line.match(/^[A-Z][A-Z\s&]+$/) && line.length > 2) {
-      return new Paragraph({
-        children: [new TextRun({ text: line, bold: true, size: 22 })],
-        spacing: { before: 200, after: 80 },
-      });
-    }
-    return new Paragraph({
-      children: [new TextRun({ text: line, size: 22 })],
-      spacing: { after: 60 },
-    });
+  const FONT      = 'Calibri';
+  const COLOR     = '1A1A18';
+  const MUTED     = '555555';
+  const HR_COLOR  = 'CCCCCC';
+  const NAME_SIZE = 32;
+  const HEAD_SIZE = 22;
+  const BODY_SIZE = 20;
+
+  const sectionHead = (text) => new Paragraph({
+    spacing: { before: 180, after: 60 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: HR_COLOR } },
+    children: [new TextRun({
+      text, font: FONT, size: HEAD_SIZE, bold: true, color: COLOR, allCaps: true, characterSpacing: 40,
+    })],
+  });
+
+  const bullet = (text) => new Paragraph({
+    numbering: { reference: 'resume-bullets', level: 0 },
+    spacing: { before: 40, after: 40 },
+    children: [new TextRun({ text, font: FONT, size: BODY_SIZE, color: COLOR })],
+  });
+
+  const children = [];
+
+  children.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 0, after: 60 },
+    children: [new TextRun({ text: r.name, font: FONT, size: NAME_SIZE, bold: true, color: COLOR })],
+  }));
+
+  const contactLine = `US: ${r.contact.us_phone}  /  FR: ${r.contact.fr_phone}  /  ${r.contact.email}  /  ${r.contact.linkedin}`;
+  children.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 0, after: 80 },
+    children: [new TextRun({ text: contactLine, font: FONT, size: BODY_SIZE, color: MUTED })],
+  }));
+
+  children.push(new Paragraph({
+    spacing: { before: 0, after: 160 },
+    children: [new TextRun({ text: r.summary, font: FONT, size: BODY_SIZE, color: COLOR, italics: true })],
+  }));
+
+  children.push(sectionHead('Professional Experience'));
+
+  r.experience.forEach(exp => {
+    children.push(new Paragraph({
+      spacing: { before: 140, after: 20 },
+      tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+      children: [
+        new TextRun({ text: exp.company + ',', font: FONT, size: BODY_SIZE, bold: true, color: COLOR }),
+        new TextRun({ text: ' ' + exp.location, font: FONT, size: BODY_SIZE, color: COLOR }),
+        new TextRun({ text: '\t' + exp.dates, font: FONT, size: BODY_SIZE, color: MUTED }),
+      ],
+    }));
+    children.push(new Paragraph({
+      spacing: { before: 0, after: 60 },
+      children: [new TextRun({ text: exp.title, font: FONT, size: BODY_SIZE, color: COLOR, italics: true })],
+    }));
+    exp.bullets.forEach(b => children.push(bullet(b)));
+  });
+
+  children.push(sectionHead('Skills'));
+  r.skills.forEach(skill => {
+    children.push(new Paragraph({
+      spacing: { before: 60, after: 40 },
+      children: [
+        new TextRun({ text: skill.category + ': ', font: FONT, size: BODY_SIZE, bold: true, color: COLOR }),
+        new TextRun({ text: skill.items, font: FONT, size: BODY_SIZE, color: COLOR }),
+      ],
+    }));
+  });
+
+  children.push(sectionHead('Education'));
+  r.education.forEach(edu => {
+    children.push(new Paragraph({
+      spacing: { before: 140, after: 20 },
+      tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+      children: [
+        new TextRun({ text: edu.degree, font: FONT, size: BODY_SIZE, bold: true, color: COLOR }),
+        new TextRun({ text: '\t' + edu.dates, font: FONT, size: BODY_SIZE, color: MUTED }),
+      ],
+    }));
+    children.push(new Paragraph({
+      spacing: { before: 0, after: 60 },
+      children: [new TextRun({ text: edu.school + '  ' + edu.location, font: FONT, size: BODY_SIZE, color: COLOR })],
+    }));
+    edu.bullets.forEach(b => children.push(bullet(b)));
   });
 
   const doc = new Document({
-    sections: [{ properties: {}, children }],
+    numbering: {
+      config: [{
+        reference: 'resume-bullets',
+        levels: [{
+          level: 0, format: LevelFormat.BULLET, text: '\u2022', alignment: AlignmentType.LEFT,
+          style: { paragraph: { indent: { left: 360, hanging: 360 } } },
+        }],
+      }],
+    },
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 12240, height: 15840 },
+          margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
+        },
+      },
+      children,
+    }],
   });
 
-  Packer.toBlob(doc).then(blob => {
-    triggerDownload(blob, filename);
+  const filename = `Victor_Achard_${job.company.replace(/\s+/g, '_')}_Resume.docx`;
+  Packer.toBlob(doc).then(blob => triggerDownload(blob, filename));
+}
+
+function buildCoverDocx(text, job) {
+  const { Document, Packer, Paragraph, TextRun } = docx;
+  const FONT = 'Calibri';
+  const SIZE = 22;
+  const COLOR = '1A1A18';
+
+  const children = text.split('\n').map(line =>
+    new Paragraph({
+      spacing: { before: 0, after: line === '' ? 160 : 60 },
+      children: [new TextRun({ text: line, font: FONT, size: SIZE, color: COLOR })],
+    })
+  );
+
+  const doc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 12240, height: 15840 },
+          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+        },
+      },
+      children,
+    }],
   });
+
+  const filename = `Victor_Achard_${job.company.replace(/\s+/g, '_')}_CoverLetter.docx`;
+  Packer.toBlob(doc).then(blob => triggerDownload(blob, filename));
 }
 
 function triggerDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
+  const a   = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
-// Load docx.js from CDN
-const docxScript = document.createElement('script');
-docxScript.src = 'https://unpkg.com/docx@8.5.0/build/index.js';
-document.head.appendChild(docxScript);
+const s = document.createElement('script');
+s.src   = 'https://unpkg.com/docx@8.5.0/build/index.js';
+document.head.appendChild(s);
 
-// ============================================================
-// START
-// ============================================================
 init();
