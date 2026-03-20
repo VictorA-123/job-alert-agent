@@ -235,7 +235,7 @@ def parse_greenhouse(company: dict) -> list[dict]:
             "title": post.get("title", ""),
             "location": loc,
             "url": post.get("absolute_url", company["url"]),
-            "description": description,
+"description": clean_description(description),
             "salary": "",
         })
     return jobs
@@ -329,7 +329,41 @@ PARSERS = {
 # ---------------------------------------------------------------------------
 # KEYWORD FILTERING
 # ---------------------------------------------------------------------------
-
+def clean_description(text: str) -> str:
+    if not text:
+        return ""
+    # Remove HTML tags if any slipped through
+    soup = BeautifulSoup(text, "html.parser")
+    text = soup.get_text(separator="\n")
+    # Remove lines that are pure noise
+    noise = [
+        "powered by", "greenhouse", "lever.co", "apply now", "apply for this job",
+        "equal opportunity", "eeo", "we are an equal", "disability", "veteran",
+        "accommodation", "click here", "learn more", "view all jobs",
+        "about us", "who we are", "our mission", "join our team",
+        "we offer", "benefits include", "compensation range",
+    ]
+    lines = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if len(line) < 8:
+            continue
+        if any(n in line.lower() for n in noise):
+            continue
+        lines.append(line)
+    # Deduplicate consecutive identical lines
+    deduped = []
+    for line in lines:
+        if not deduped or line != deduped[-1]:
+            deduped.append(line)
+    # Cap at 80 words to keep it readable
+    full = "\n".join(deduped)
+    words = full.split()
+    if len(words) > 80:
+        full = " ".join(words[:80]) + "…"
+    return full
 def matches_keywords(job: dict, keywords: list[str]) -> bool:
     if not keywords:
         return True
