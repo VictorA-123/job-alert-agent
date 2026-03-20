@@ -387,7 +387,11 @@ function closeDiff() {
 // ============================================================
 
 function downloadDocx() {
-  if (!currentDiffJob || !resumeData) return;
+ if (!currentDiffJob || !resumeData) return;
+  if (!window.docxReady) {
+    alert('Document library still loading — wait a second and try again.');
+    return;
+  }
 
   const accepted = currentDiffChanges.filter(c => c.accepted);
   const job      = currentDiffJob;
@@ -600,6 +604,7 @@ function triggerDownload(blob, filename) {
 
 const s = document.createElement('script');
 s.src   = 'https://unpkg.com/docx@8.5.0/build/index.js';
+s.onload = () => { window.docxReady = true; };
 document.head.appendChild(s);
 
 init();
