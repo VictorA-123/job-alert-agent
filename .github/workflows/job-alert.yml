@@ -2,13 +2,14 @@ name: Job Alert Agent
 
 on:
   schedule:
-    # Runs every day at 08:00 UTC (09:00 Paris, 04:00 ET)
     - cron: "0 8 * * *"
-  workflow_dispatch:  # allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   check-jobs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repo
@@ -22,7 +23,6 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
 
-      # Restore seen_jobs.json from cache so we remember previously seen jobs
       - name: Restore job state cache
         uses: actions/cache@v5
         with:
@@ -38,7 +38,16 @@ jobs:
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
         run: python scraper.py
 
-      # Save updated state back to cache
+      - name: Commit and push jobs.json to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/jobs.json
+          git diff --staged --quiet || git commit -m "Update jobs.json [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Save job state cache
         uses: actions/cache/save@v5
         if: always()
