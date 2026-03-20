@@ -84,12 +84,12 @@ COMPANIES = [
         "gh_board": "outrider",
         "keywords": ["commercial", "business", "operations", "customer", "partnerships"],
     },
-    {
-        "name": "Isee AI",
-        "url": "https://www.isee.ai/careers#positions",
-        "parser": "generic",
-        "keywords": [],
-    },
+{
+    "name": "Isee AI",
+    "url": "https://jobs.lever.co/isee",
+    "parser": "lever",
+    "keywords": ["commercial", "business", "operations", "partnerships", "sales"],
+},
     {
         "name": "Waymo",
         "url": "https://waymo.com/joinus/",
