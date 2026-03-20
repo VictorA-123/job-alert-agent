@@ -446,7 +446,7 @@ function buildResumeDocx(r, job) {
   const {
     Document, Packer, Paragraph, TextRun, AlignmentType,
     LevelFormat, TabStopType, TabStopPosition, BorderStyle,
-  } = docx;
+  } = window.docx;
 
   const FONT      = 'Calibri';
   const COLOR     = '1A1A18';
@@ -563,7 +563,7 @@ function buildResumeDocx(r, job) {
 }
 
 function buildCoverDocx(text, job) {
-  const { Document, Packer, Paragraph, TextRun } = docx;
+  const { Document, Packer, Paragraph, TextRun } = window.docx;
   const FONT = 'Calibri';
   const SIZE = 22;
   const COLOR = '1A1A18';
