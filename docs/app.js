@@ -599,7 +599,7 @@ function triggerDownload(blob, filename) {
 }
 
 const s = document.createElement('script');
-s.src = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js';
+s.src = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js';
 s.onload = () => { window.docxReady = true; };
 document.head.appendChild(s);
 
