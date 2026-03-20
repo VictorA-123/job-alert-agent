@@ -387,6 +387,7 @@ function closeDiff() {
 // ============================================================
 
 function downloadDocx() {
+  if (typeof window.docx === "undefined") { alert("Still loading — try again in 2 seconds."); return; }
  if (!currentDiffJob || !resumeData) return;
 
   const accepted = currentDiffChanges.filter(c => c.accepted);
