@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-20T19:56:23Z",
+  "last_updated": "2026-03-21T08:31:03Z",
   "jobs": [
     {
       "id": "8466418002",
@@ -483,6 +483,28 @@
       "salary": "",
       "location": "Austin, TX",
       "date_found": "2026-03-20",
+      "status": "new"
+    },
+    {
+      "id": "6a45cf5e-b199-4ade-b02c-2d69eb6104a7",
+      "company": "Waabi",
+      "title": "Commercial Product MBA Intern, Summer 2026",
+      "url": "https://jobs.lever.co/waabi/6a45cf5e-b199-4ade-b02c-2d69eb6104a7",
+      "description": "<div><b><span style=\"font-size: 16px\">Perks/Benefits:</span></b></div><div><span style=\"font-size: 16px\">Waabi provides a competitive benefits package that includes:</span></div><div><span style=\"font-size: 16px\">- Daily drinks, snacks and catered meals (when in office)</span></div><div><span style=\"font-size: 16px\">- Regularly scheduled team building activities and social events</span></div><div><span style=\"font-size: 16px\">- As we grow, this list continues to evolve!&nbsp;</span></div><div><br></div><div><span style=\"font-size: 16px\">Waabi is a technology start-up building technologies to transform the way the world moves. Join our talented team to be a part of the future and to make an impact!</span></div><div><br></div><div><span style=\"font-size: 16px\">Waabi is an equal opportunity employer. We celebrate diversity and are committed to creating a supportive, inclusive, and accessible workplace for all our employees. We seek applicants of all backgrounds and identities, across race, color, ethnicity, national origin or ancestry, age, citizenship, religion, sex, sexual orientation, gender identity or expression, military or veteran status, marital status, pregnancy or parental status, caregiver status, disability, or any other characteristic protected by law. We make workplace accommodations for qualified individuals with disabilities as required by applicable law. If reasonable accommodation is needed to participate in the job application or interview process please let our recruiting team know.</span></div><div><br></div>",
+      "salary": "",
+      "location": "San Francisco, CA",
+      "date_found": "2026-03-21",
+      "status": "new"
+    },
+    {
+      "id": "7672034003",
+      "company": "Motional",
+      "title": "Manager, AV Test Operations",
+      "url": "https://motional.com/open-positions/?gh_jid=7672034003#/7672034003",
+      "description": "Motional\u2019s Las Vegas office is located less than 10 miles from the Las Vegas strip at 730 E Pilot Road and is home to one of the largest fleets of self-driving vehicles. The city\u2019s grid system of roads and being one of America\u2019s \u201csmart cities\u201d allows for extensive research and development testing. Mission Summary The AV Test Operations Manager is responsible for establishing best practices and operational protocols for Autonomous Vehicle (AV) Operators, working in collaboration with AV Test Supervisors and Leadership. Reporting to the Director of AV Test Operations, this role drives the safe, reliable, and efficient operation of\u2026",
+      "salary": "",
+      "location": "Las Vegas",
+      "date_found": "2026-03-21",
       "status": "new"
     }
   ]
